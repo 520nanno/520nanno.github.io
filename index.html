@@ -1,193 +1,436 @@
-<!doctype html>
-<html lang="zh-CN">
+
+<!DOCTYPE html>
+
+<html lang="ja" prefix="og: http://ogp.me/ns# fb: http://www.facebook.com/2008/fbml">
 <head>
-    <meta charset="utf-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1"/>
-    <title>葬送的芙莉莲 · 沉浸式背景导航</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+SC:wght@400;600&display=swap" rel="stylesheet">
-    <style>
-        :root{--text:#e8ecff;--muted:#a8b7ff;--primary:#7ad0ff;--accent:#b58cff}
-        *{box-sizing:border-box} html,body{height:100%}
-        body{margin:0;color:var(--text);font-family:"Noto Sans SC",system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;background:#0b1020;overflow:hidden}
+<!-- Google Tag Manager -->
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
 
-        /* 背景视频：全屏铺底 */
-        #bgv{position:fixed;inset:0;width:100%;height:100%;object-fit:cover;z-index:-3;background:#0b1020}
-        /* 若无视频 -> WebGL/Canvas 着色器层与极光/网格 */
-        .fx{position:fixed;inset:0;pointer-events:none;z-index:-2}
-        .fx::before{content:"";position:absolute;inset:0;mix-blend-mode:screen;opacity:.55;
-            background:
-                    radial-gradient(60% 60% at 20% 10%, #7ad0ff22, transparent 60%),
-                    radial-gradient(60% 60% at 80% 25%, #b58cff22, transparent 60%),
-                    conic-gradient(from 0deg, #7ad0ff0d, #b58cff12, #7ad0ff0d);
-            animation:spin 28s linear infinite}
-        .fx::after{content:"";position:absolute;inset:0;opacity:.18;
-            background:
-                    radial-gradient(1200px 600px at 10% -10%, #0008, transparent 60%),
-                    radial-gradient(900px 600px at 110% 20%, #0006, transparent 60%),
-                    radial-gradient(#ffffff15 1px, transparent 1.2px);
-            background-size:auto,auto,10px 10px}
-        @keyframes spin{to{transform:rotate(360deg)}}
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
 
-        /* WebGL/Canvas 容器（视频失败时显示） */
-        #shader{position:fixed;inset:0;z-index:-4;display:block}
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 
-        .wrap{position:relative;z-index:1;max-width:1200px;margin:0 auto;padding:28px 20px 120px}
-        header{display:flex;align-items:center;gap:16px;padding:6px 6px 18px}
-        .brand{font-family:"Bebas Neue";letter-spacing:.6px;font-size:26px;text-shadow:0 0 24px #7ad0ff66}
-        nav{margin-left:auto;display:flex;gap:24px;font-size:14px;color:#c9d4ff;opacity:.95}
-        nav a{color:inherit;text-decoration:none;position:relative}
-        nav a::after{content:"";position:absolute;left:0;bottom:-6px;height:2px;width:0;background:linear-gradient(90deg,var(--primary),var(--accent));transition:.3s}
-        nav a:hover::after{width:100%}
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
 
-        .title{margin:10px 4px 0;font-family:"Bebas Neue";font-size:clamp(42px,8vw,120px);line-height:.95;letter-spacing:1px;
-            text-shadow:0 0 24px #7ad0ff66,0 0 48px #b58cff44}
-        .muted{color:var(--muted)}
-
-        /* 右下角沉浸式链接（无卡片、无底色，仅霓虹文字） */
-        .nav-float{position:fixed;right:28px;bottom:26px;z-index:2;display:flex;gap:22px;flex-wrap:wrap}
-        .chip{display:inline-flex;align-items:center;gap:10px;text-decoration:none;color:var(--text);font-weight:700;letter-spacing:.3px;
-            text-shadow:0 0 10px #7ad0ff80,0 0 30px #b58cff60;transition:transform .2s ease;backdrop-filter:none}
-        .chip svg{opacity:.95} .chip:hover{transform:translateY(-1px) scale(1.03)}
-        .chip .u{position:relative;display:inline-block}
-        .chip .u::after{content:"";position:absolute;left:0;right:0;bottom:-3px;height:2px;background:linear-gradient(90deg,var(--primary),var(--accent));
-            box-shadow:0 0 12px #7ad0ff80;transform:scaleX(.4);transform-origin:left;transition:.25s}
-        .chip:hover .u::after{transform:scaleX(1)}
-        @media (max-width:640px){.nav-float{left:50%;right:auto;transform:translateX(-50%)}}
-
-        /* 顶部轻量提示按钮（本地/自托管视频载入） */
-        .controls{position:fixed;left:16px;bottom:16px;z-index:2;display:flex;gap:10px;align-items:center}
-        .btn{border:1px solid #ffffff30;background:linear-gradient(180deg,#121a33,#0f162b);color:#e8ecff;padding:8px 12px;border-radius:999px;font-size:12px}
-        .btn input{display:none}
-        .btn label{cursor:pointer}
-
-        .particles{position:fixed;inset:0;pointer-events:none;z-index:0}
-        .dot{position:absolute;width:3px;height:3px;border-radius:50%;background:radial-gradient(#e8f6ff,#7ad0ff00);animation:float linear infinite;opacity:.7}
-        @keyframes float{from{transform:translateY(40px)} to{transform:translateY(-640px)}}
-
-        @media (prefers-reduced-motion:reduce){.fx::before{animation:none}.dot{animation-duration:0s}}
-    </style>
-</head>
-<body>
-<video id="bgv" autoplay muted loop playsinline preload="auto"></video>
-<canvas id="shader"></canvas>
-<div class="fx" aria-hidden="true"></div>
-
-<div class="wrap">
-    <header>
-        <div class="brand">FRIEREN ARCHIVE</div>
-        <nav><a href="#">社区</a><a href="#">设定集</a><a href="#">周边</a><a href="#">联系</a></nav>
-    </header>
-    <h1 class="title">CREATION OF <span class="muted">ANIME UI</span><br/>葬送的芙莉莲</h1>
+})(window,document,'script','dataLayer','GTM-TVJ8GHH');</script>
+<!-- End Google Tag Manager -->
+<meta charset="utf-8"/>
+<title>「劇場総集編ぼっち・ざ・ろっく！」公式サイト</title>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<meta content="「劇場総集編ぼっち・ざ・ろっく！」Blu-ray＆DVD 2025.2.12 RELEASE" name="description"/>
+<meta content="Aniplex Inc." name="author"/>
+<meta content="telephone=no" name="format-detection"/>
+<meta content="SKYPE_TOOLBAR_PARSER_COMPATIBLE" name="SKYPE:TOOLBAR"/>
+<meta content="「劇場総集編ぼっち・ざ・ろっく！」公式サイト" name="twitter:title"/>
+<meta content="「劇場総集編ぼっち・ざ・ろっく！」Blu-ray＆DVD 2025.2.12 RELEASE" name="twitter:description"/>
+<meta content="summary_large_image" name="twitter:card"/>
+<meta content="https://bocchi.rocks/omnibus/assets/siteinfo/og_image_20241225.png" name="twitter:image"/>
+<meta content="@BTR_anime" name="twitter:site"/>
+<meta content="https://bocchi.rocks/" property="og:url"/>
+<meta content="「劇場総集編ぼっち・ざ・ろっく！」公式サイト" property="og:title"/>
+<meta content="「劇場総集編ぼっち・ざ・ろっく！」Blu-ray＆DVD 2025.2.12 RELEASE" property="og:description"/>
+<meta content="website" property="og:type"/>
+<meta content="https://bocchi.rocks/omnibus/assets/siteinfo/og_image_20241225.png" property="og:image"/>
+<meta content="「劇場総集編ぼっち・ざ・ろっく！」公式サイト" property="og:site:name"/>
+<link href="omnibus/assets/siteinfo/apple-touch-icon.png" rel="apple-touch-icon"/>
+<link href="omnibus/assets/siteinfo/favicon.ico" rel="shortcut icon"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="_ext/cdn.jsdelivr.net/npm/yakuhanjp@3.3.1/dist/css/yakuhanjp-noto.min.css" rel="stylesheet"/>
+<link href="_ext/fonts.googleapis.com/css2.q_1bfbc2c51f" rel="stylesheet"/>
+<link href="_ext/fonts.googleapis.com/css2.q_827138af42" rel="stylesheet"/>
+<link href="_ext/cdn.jsdelivr.net/npm/yakuhanjp@3.4.1/dist/css/yakuhanmp-noto.min.css" rel="stylesheet"/>
+<link href="_ext/use.typekit.net/fsi1pcs.css" rel="stylesheet"/>
+<link href="omnibus/assets/css/common.q_cb01401296.css" rel="stylesheet"/>
+<link href="omnibus/assets/css/page/top.q_cb01401296.css" rel="stylesheet">
+</link></head>
+<body class="top" data-character="compilation6">
+<!-- Google Tag Manager (noscript) -->
+<noscript><iframe height="0" src="https://www.googletagmanager.com/ns.html?id=GTM-TVJ8GHH" style="display:none;visibility:hidden" width="0"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->
+<button class="l-header__trigger js-gnav_open"></button>
+<header class="l-header">
+<div class="l-header__inner">
+<nav class="l-gnav c-guildhall">
+<div class="l-gnav__inner">
+<ul class="l-gnav__group -theater">
+<li class="l-gnav__item -active">
+<a href="/bocchi/">TOP</a>
+</li>
+<li class="l-gnav__item">
+<a href="/bocchi/omnibus/news/">NEWS</a>
+</li>
+<li class="l-gnav__item">
+<a href="/bocchi/omnibus/introduction/">INTRODUCTION</a>
+</li>
+<div class="l-gnav__item">
+<a href="/bocchi/omnibus/character/">CHARACTER</a>
 </div>
-
-<!-- 沉浸式右下角导航 -->
-<div class="nav-float">
-    <a class="chip" href="https://sublink.nanno.top/" aria-label="打开 sublink.nanno.top">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M10.6 13.4a1 1 0 1 1-1.4-1.4l4.3-4.3a3.5 3.5 0 1 1 5 5l-2.1 2.1a1 1 0 1 1-1.4-1.4l2.1-2.1a1.5 1.5 0 1 0-2.1-2.1l-4.3 4.3Z"/><path d="M13.4 10.6a1 1 0 1 1 1.4 1.4l-4.3 4.3a3.5 3.5 0 1 1-5-5l2.1-2.1a1 1 0 1 1 1.4 1.4L6.9 12a1.5 1.5 0 0 0 2.1 2.1l4.4-3.5Z"/></svg>
-        <span class="u">sublink.nanno.top</span>
-    </a>
-    <a class="chip" href="https://augment.nanno.top/" aria-label="打开 augment.nanno.top">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c1.5 4.5-1 6.5-1 8.5A3.5 3.5 0 0 0 14.5 14c0 2.5-2 4.5-4.5 4.5S5.5 16.5 5.5 14c0-3.5 3.5-4.5 3.5-7 0-1.4-.6-2.7-1.2-3.8C10 4.4 13 6.3 13 9c0 1.7-1.2 3-2.5 3s-2.5-1.3-2.5-3c0-1.1.5-2.1 1.2-3.1C10.5 3.3 12 2 12 2Z"/></svg>
-        <span class="u">augment.nanno.top</span>
-    </a>
+<li class="l-gnav__item">
+<a href="/bocchi/omnibus/caststaff/">CAST&amp;STAFF</a>
+</li>
+<li class="l-gnav__item">
+<a href="/bocchi/omnibus/story/">STORY</a>
+</li>
+<li class="l-gnav__item -music">
+<a href="/bocchi/kessokuband/discography/?category=劇場総集編" rel="noopener noreferrer" target="_blank">MUSIC</a>
+</li>
+<li class="l-gnav__item">
+<a href="/bocchi/omnibus/movie/">MOVIE</a>
+</li>
+</ul>
+<ul class="l-gnav__group -right">
+<li class="l-gnav__item">
+<a href="/bocchi/omnibus/theater/">THEATER</a>
+</li>
+<li class="l-gnav__item">
+<a href="/bocchi/omnibus/ticket/">TICKET</a>
+</li>
+<li class="l-gnav__item">
+<a href="/bocchi/omnibus/novelty/">NOVELTY</a>
+</li>
+<li class="l-gnav__item">
+<a href="/bocchi/omnibus/talksession/">TALKSESSION</a>
+</li>
+<li class="l-gnav__item">
+<a href="/bocchi/omnibus/bddvd/">Blu-ray&amp;DVD</a>
+</li>
+<li class="l-gnav__item">
+<a href="/bocchi/omnibus/goods/">THEATER GOODS</a>
+</li>
+<li class="l-gnav__item">
+<a href="/bocchi/omnibus/special/">SPECIAL</a>
+</li>
+<li class="l-gnav__item -sns">
+<p class="sns-ttl">Official SNS</p>
+<div class="sns-list">
+<div class="sns-item -x"><a href="https://twitter.com/BTR_anime" rel="noopener noreferrer" target="_blank"></a></div>
+<div class="sns-item -instagram"><a href="https://www.instagram.com/BTR_isosta/" rel="noopener noreferrer" target="_blank"></a></div>
+<div class="sns-item -tiktok"><a href="https://www.tiktok.com/@btr_chiktok" rel="noopener noreferrer" target="_blank"></a></div>
 </div>
-
-<!-- 本地/自托管视频载入控件：可选 -->
-<div class="controls">
-    <button class="btn" id="muteBtn">🔇 静音</button>
-    <div class="btn"><label for="file">选择本地视频</label><input id="file" type="file" accept="video/mp4,video/webm,video/ogg"/></div>
+</li>
+</ul>
 </div>
-
-<div class="particles" id="particles"></div>
-
-<script>
-    // 1) 尝试从 URL ?bg=xxx.mp4 读取自托管视频
-    const q = new URLSearchParams(location.search);
-    const bg = q.get('bg');           // 例如 https://your.cdn/frieren1080.mp4
-    const v = document.getElementById('bgv');
-    if(bg){ v.src = bg; }
-
-    // 2) 选择本地视频（无需登录、无需服务器）
-    document.getElementById('file').addEventListener('change', e=>{
-        const f=e.target.files[0]; if(!f) return;
-        v.src = URL.createObjectURL(f); v.play().catch(()=>{});
-    });
-
-    // 3) 自动播放策略处理
-    v.muted = true; v.autoplay = true; v.loop = true; v.playsInline = true;
-    const tryPlay = ()=> v.play().catch(()=>{/* 若失败，用户点击后再播 */});
-    document.addEventListener('DOMContentLoaded', tryPlay);
-
-    // 4) 静音切换
-    const muteBtn = document.getElementById('muteBtn');
-    const refreshMuteBtn = ()=> muteBtn.textContent = v.muted ? '🔇 静音' : '🔊 声音';
-    muteBtn.addEventListener('click', ()=>{ v.muted = !v.muted; tryPlay(); refreshMuteBtn(); });
-    refreshMuteBtn();
-
-    // 5) 若没有视频或加载失败 -> 显示 Canvas 着色器（冰蓝×紫色动态）
-    v.addEventListener('error', ()=> startShader());
-    if(!bg && !q.has('novid')) startShader(); // 初次无 src 时先跑着色器，等视频选择后覆盖
-
-    function startShader(){
-        const c = document.getElementById('shader'); const gl = c.getContext('webgl');
-        const DPR = Math.min(2, window.devicePixelRatio||1);
-        function resize(){ c.width = innerWidth*DPR; c.height = innerHeight*DPR; c.style.width='100%'; c.style.height='100%'; gl.viewport(0,0,c.width,c.height); }
-        if(!gl){ simpleGradient(); return; }
-        const vs=`attribute vec2 p;void main(){gl_Position=vec4(p,0.0,1.0);} `;
-        const fs=`precision highp float;uniform vec2 r;uniform float t;
-      float n(vec2 p){return fract(sin(dot(p,vec2(27.168,38.905)))*43758.5453);}
-      float noise(vec2 p){vec2 i=floor(p),f=fract(p);float a=n(i),b=n(i+vec2(1.,0.)),c=n(i+vec2(0.,1.)),d=n(i+vec2(1.,1.));
-        vec2 u=f*f*(3.-2.*f);return mix(a,b,u.x)+ (c-a)*u.y*(1.-u.x)+ (d-b)*u.x*u.y;}
-      void main(){
-        vec2 uv=(gl_FragCoord.xy/r.xy);
-        float t1=t*0.05, t2=t*0.09;
-        float m1=noise(uv*3.0+vec2(t1, -t1));
-        float m2=noise(uv*2.0+vec2(-t2, t2));
-        vec3 c1=vec3(0.45,0.82,1.0); // 冰蓝
-        vec3 c2=vec3(0.71,0.55,1.0); // 紫
-        vec3 col=mix(c1,c2,smoothstep(0.2,0.8,m1))+0.15*m2;
-        col+=0.08*sin(uv.yxx*9.0+t*0.8);
-        col*=1.0-0.35*pow(distance(uv,vec2(0.5)),1.3); // 暗角
-        gl_FragColor=vec4(col,1.0);
-      }`;
-        function compile(t,s){const sh=gl.createShader(t);gl.shaderSource(sh,s);gl.compileShader(sh);return sh}
-        const pr=gl.createProgram(); gl.attachShader(pr,compile(gl.VERTEX_SHADER,vs)); gl.attachShader(pr,compile(gl.FRAGMENT_SHADER,fs)); gl.linkProgram(pr); gl.useProgram(pr);
-        const buf=gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,buf); gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
-        const loc=gl.getAttribLocation(pr,"p"); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);
-        const uR=gl.getUniformLocation(pr,"r"), uT=gl.getUniformLocation(pr,"t");
-        resize(); window.addEventListener('resize',resize);
-        let st=performance.now();
-        (function draw(){
-            gl.uniform2f(uR,c.width,c.height);
-            gl.uniform1f(uT,(performance.now()-st)/1000.0);
-            gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
-            requestAnimationFrame(draw);
-        })();
-        function simpleGradient(){ // 无 WebGL 时简单渐变
-            const ctx=c.getContext('2d'); resize();
-            let t=0; (function loop(){ t+=0.01; const g=ctx.createLinearGradient(0,0,c.width,c.height);
-                g.addColorStop(0,`hsl(${200+20*Math.sin(t)},100%,60%)`); g.addColorStop(1,`hsl(${270+20*Math.cos(t)},100%,65%)`);
-                ctx.fillStyle=g; ctx.fillRect(0,0,c.width,c.height); requestAnimationFrame(loop); })();
-        }
-    }
-
-    // 6) 轻粒子
-    (function(){
-        const box=document.getElementById('particles');
-        if(!box) return;
-    })();
-    (function(){ // 直接在 body 上生成，减少节点
-        const N=90, frag=document.createDocumentFragment(), H=innerHeight, W=innerWidth;
-        for(let i=0;i<N;i++){
-            const d=document.createElement('span');
-            d.className='dot'; d.style.position='fixed';
-            d.style.left=(Math.random()*W)+'px'; d.style.top=(Math.random()*H)+'px';
-            d.style.animationDuration=(18+Math.random()*22)+'s'; d.style.opacity=.35+Math.random()*.65;
-            frag.appendChild(d);
-        }
-        document.body.appendChild(frag);
-    })();
-</script>
+<div class="l-gnav__banner">
+<ul class="l-gnav__banner__group">
+<li class="l-gnav__item -banner">
+<a href="/bocchi/kessokuband/" rel="noopener noreferrer" target="_blank">
+<img alt="結束バンド" src="omnibus/assets/img/common/bnr/bnr_kessokuband.jpg"/>
+</a>
+</li>
+<li class="l-gnav__item -banner">
+<a href="/bocchi/tv/" rel="noopener noreferrer" target="_blank">
+<img alt="TV ANIME" src="omnibus/assets/img/common/bnr/bnr_btranime.jpg"/>
+</a>
+</li>
+<li class="l-gnav__item -banner">
+<a href="/bocchi/stage/" rel="noopener noreferrer" target="_blank">
+<img alt="LIVE STAGE" src="omnibus/assets/img/common/bnr/bnr_livestage.jpg"/>
+</a>
+</li>
+</ul>
+<ul class="l-gnav__banner__group">
+<li class="l-gnav__item -otherlink">
+<a href="/bocchi/tv/goods/" rel="noopener noreferrer" target="_blank">GOODS</a>
+</li>
+<li class="l-gnav__item -otherlink -tieup">
+<a href="/bocchi/omnibus/tieup/">TIEUP</a>
+</li>
+<li class="l-gnav__item -otherlink">
+<a href="https://houbunsha.co.jp/comics/detail.php?p=%A4%DC%A4%C3%A4%C1%A1%A6%A4%B6%A1%A6%A4%ED%A4%C3%A4%AF%A1%AA" rel="noopener noreferrer" target="_blank">COMICS</a>
+</li>
+<li class="l-gnav__item -otherlink">
+<a href="https://www.youtube.com/playlist?list=PLUH30mfo5wJy45vXf-Dk4i2Q9VY7oObm4" rel="noopener noreferrer" target="_blank">RADIO</a>
+</li>
+</ul>
+</div>
+</nav>
+<button class="l-header__close js-gnav_close"></button>
+</div>
+</header>
+<div class="l-header__share">
+<h4 class="ttl c-dystopian">SHARE</h4>
+<ul class="list">
+<li class="item -x c-hover_op"><a href="https://twitter.com/intent/tweet?text=%E3%80%8C%E5%8A%87%E5%A0%B4%E7%B7%8F%E9%9B%86%E7%B7%A8%E3%81%BC%E3%81%A3%E3%81%A1%E3%83%BB%E3%81%96%E3%83%BB%E3%82%8D%E3%81%A3%E3%81%8F%EF%BC%81%E3%80%8DBlu-ray%EF%BC%86DVD%202025.2.12%20RELEASE%20%23%E3%81%BC%E3%81%A3%E3%81%A1%E3%83%BB%E3%81%96%E3%83%BB%E3%82%8D%E3%81%A3%E3%81%8F" rel="noopener noreferrer" target="_blank"></a></li>
+<li class="item -line c-hover_op"><a href="https://line.me/R/msg/text/?%E3%80%8C%E5%8A%87%E5%A0%B4%E7%B7%8F%E9%9B%86%E7%B7%A8%E3%81%BC%E3%81%A3%E3%81%A1%E3%83%BB%E3%81%96%E3%83%BB%E3%82%8D%E3%81%A3%E3%81%8F%EF%BC%81%E3%80%8DBlu-ray%EF%BC%86DVD%202025.2.12%20RELEASE%20%23%E3%81%BC%E3%81%A3%E3%81%A1%E3%83%BB%E3%81%96%E3%83%BB%E3%82%8D%E3%81%A3%E3%81%8F" rel="noopener noreferrer" target="_blank"></a></li>
+<li class="item -facebook c-hover_op"><a href="https://www.facebook.com/share.php?u=https://bocchi.rocks/" rel="noopener noreferrer" target="_blank"></a></li>
+</ul>
+</div>
+<main class="l-main">
+<div class="top__content">
+<div class="c-onpu">
+<div class="c-onpu__layer -layer1"></div>
+<div class="c-onpu__layer -layer2"></div>
+<div class="c-onpu__layer -layer3"></div>
+</div> <div class="mainvisual">
+<div class="mainvisual__bg"></div>
+<div class="mainvisual__ph">
+<div class="mainvisual__ph__slide"></div>
+</div>
+<div class="mainvisual__change__curtain"></div>
+<div class="mainvisual__catch">
+<span class="catch -item1">
+<picture>
+<source media="(max-width:834px)" srcset="omnibus/assets/img/page/top/common/title_1_nrw.svg"/>
+<img alt="" src="omnibus/assets/img/page/top/common/title_1.svg"/>
+</picture>
+</span>
+<span class="catch -item2">
+<picture>
+<source media="(max-width:834px)" srcset="omnibus/assets/img/page/top/common/title_2_nrw.svg"/>
+<img alt="" src="omnibus/assets/img/page/top/common/title_2.svg"/>
+</picture>
+</span>
+<span class="catch -item3">
+<picture>
+<source media="(max-width:834px)" srcset="omnibus/assets/img/page/top/common/title_3_nrw.svg"/>
+<img alt="" src="omnibus/assets/img/page/top/common/title_3.svg"/>
+</picture>
+</span>
+</div>
+<p class="mainvisual__logo">
+<span><img alt="劇場総集編 ぼっち・ざ・ろっく！ BOCCHI THE ROCK" src="omnibus/assets/img/page/top/common/logo_movie.svg"/></span>
+</p>
+</div>
+<div class="mainvisual__change js-mvsticky">
+<div class="mainvisual__change__row">
+<button class="mainvisual__change__item js-charachangebtn" data-character="compilation" data-nextcharacter="compilation2"></button>
+<button class="mainvisual__change__item js-charachangebtn" data-character="compilation2" data-nextcharacter="compilation3"></button>
+<button class="mainvisual__change__item js-charachangebtn" data-character="compilation3" data-nextcharacter="compilation4"></button>
+<button class="mainvisual__change__item js-charachangebtn" data-character="compilation4" data-nextcharacter="compilation"></button>
+<button class="mainvisual__change__item js-charachangebtn" data-character="compilation5" data-nextcharacter="compilation6"></button>
+<button class="mainvisual__change__item js-charachangebtn -active" data-character="compilation6" data-nextcharacter="compilation"></button>
+</div>
+</div>
+<a class="mainvisual__date js-mvsticky" href="/bocchi/omnibus/bddvd/">
+<span class="mainvisual__date__main"><img alt="Bru-ray&amp;DVD 2025 2/25 RELEASE!" src="omnibus/assets/img/page/top/common/patch.png"/></span>
+</a>
+<div class="top__main">
+<h1 class="top__content__logo"><span><img alt="劇場総集編 ぼっち・ざ・ろっく！ BOCCHI THE ROCK" src="omnibus/assets/img/page/top/common/logo_movie.svg"/></span></h1>
+<div class="top__main__inner">
+<section class="news">
+<h2 class="c-secttl c-guildhall">NEWS</h2>
+<div class="news__row">
+<ul class="news__list">
+<li class="news__list__item">
+<a href="/bocchi/omnibus/news/?article_id=68548">
+<h3 class="date c-guildhall">2025.08.23</h3>
+<h2 class="ttl">『結束バンドへの道』フルver. 先行上映決定！</h2>
+</a>
+</li>
+<li class="news__list__item">
+<a href="/bocchi/omnibus/news/?article_id=68547">
+<h3 class="date c-guildhall">2025.08.23</h3>
+<h2 class="ttl">「結束バンド TOUR “We will B”」発売記念 復刻版・ビラ配布決定！</h2>
+</a>
+</li>
+<li class="news__list__item">
+<a href="/bocchi/omnibus/news/?article_id=68287">
+<h3 class="date c-guildhall">2025.07.21</h3>
+<h2 class="ttl">『KESSOKUBAND LIVE in KOREA 「From Shimokitazawa」』チケット販売に関しまして</h2>
+</a>
+</li>
+</ul>
+<a class="news__seeall c-guildhall" href="/bocchi/omnibus/news/">SEE ALL</a>
+</div>
+</section>
+<div class="btns">
+<div class="btns__item -movie js-modal_open js-moviemodal_btn" data-modalid="movie" data-videoid="EKedY3tedTY">
+<span class="c-hover_op">
+<video autoplay="1" class="movie__bg" loop="1" muted="1" playsinline="">
+<source class="movie__frame" src="omnibus/assets/img/page/top/bnr/mov_bnr.mp4" type="video/mp4"/>
+</video>
+<!-- <img src="http://img.youtube.com/vi/6MIoFigu3Fg/maxresdefault.jpg" alt=""> -->
+</span>
+</div>
+<div class="btns__item -bnr">
+<div class="bnr__cont swiper">
+<div class="swiper-wrapper">
+<div class="swiper-slide">
+<div class="js-announce2ndmodal_open"><img alt="2期制作決定！" class="c-hover_op" src="omnibus/assets/img/page/top/bnr/bnr_announce2nd.png"/></div>
+</div>
+</div>
+</div>
+<div class="swiper-pagination"></div>
+</div>
+</div> </div>
+</div>
+</div> </main>
+<div class="c-modal js-modal announce2ndmodal" data-ismv="true" id="announce2nd__modal">
+<div class="announce2ndmodal__inner">
+<div class="announce2ndmodal__content" data-page="1">
+<div class="announce2ndmodal__intro__bg"></div>
+<div class="announce2ndmodal__intro__mv">
+<img alt="MV" src="tv/assets/img/page/top/announce2nd/ph_mv.jpg">
+</img></div>
+</div>
+<div class="announce2ndmodal__content" data-page="2">
+<div class="announce2ndmodal__ttl">
+<img alt="ぼっち・ざ・ろっく！2期制作決定" src="tv/assets/img/page/top/announce2nd/ttl_2nd.png">
+</img></div>
+<div class="announce2ndmodal__fv">
+<div class="announce2ndmodal__fv__mv">
+<img alt="MV" src="tv/assets/img/page/top/announce2nd/ph_mv.jpg"/>
+</div>
+<div class="announce2ndmodal__fv__info">
+<div class="announce2ndmodal__fv__info__staff announce2ndmodal__box">
+<h2 class="announce2ndmodal__fv__info__staff__ttl announce2ndmodal__box__ttl">
+<img alt="STAFF" src="tv/assets/img/page/top/announce2nd/ttl_staff.png"/>
+</h2>
+<div class="announce2ndmodal__fv__info__staff__cont">
+<dl class="announce2ndmodal__fv__info__staff__cont__list">
+<dt>原作</dt>
+<dd>はまじあき<span>（芳文社「まんがタイムきららMAX」連載中）</span></dd>
+</dl>
+<dl class="announce2ndmodal__fv__info__staff__cont__list">
+<dt>監督</dt>
+<dd>山本ゆうすけ</dd>
+</dl>
+<dl class="announce2ndmodal__fv__info__staff__cont__list">
+<dt>脚本<dt>
+<dd>吉田恵里香</dd>
+</dt></dt></dl>
+<dl class="announce2ndmodal__fv__info__staff__cont__list">
+<dt>キャラクターデザイン<dt>
+<dd>小田景門 けろりら</dd>
+</dt></dt></dl>
+<dl class="announce2ndmodal__fv__info__staff__cont__list">
+<dt>制作<dt>
+<dd>CloverWorks</dd>
+</dt></dt></dl>
+</div>
+<button class="announce2ndmodal__fv__info__staff__mov js-modal_open js-moviemodal_btn" data-modalid="movie" data-videoid="2z5nOlwq9XU">
+<span class="thumb">
+<img alt="" src="_ext/img.youtube.com/vi/2z5nOlwq9XU/maxresdefault.jpg"/>
+</span>
+</button>
+</div>
+</div>
+</div>
+<div class="announce2ndmodal__comment announce2ndmodal__box">
+<h2 class="announce2ndmodal__comment__ttl announce2ndmodal__box__ttl">
+<img alt="COMMENT" src="tv/assets/img/page/top/announce2nd/ttl_comment.png">
+</img></h2>
+<div class="announce2ndmodal__comment__cont">
+<div class="announce2ndmodal__comment__cont__box">
+<div class="announce2ndmodal__comment__cont__box__inner">
+<dl class="announce2ndmodal__comment__cont__box__head">
+<dd>斎藤圭一郎<span>Keiichiro Saito</span></dd>
+</dl>
+<p class="announce2ndmodal__comment__cont__box__txt">
+                                ぼっち・ざ・ろっく！2期の発表おめでとうございます！<br/>
+                                今回、山本ゆうすけさんに監督をバトンタッチする形ではありますが、アニメが放送終了してから今まで沢山の方から2期を期待する声をいただき、また、沢山の方がアニメ2期制作の実現に向けて動き続けて来た事を知っているので、こうして皆様の前で発表まで至れた事を大変嬉しく思っています。<br/>
+                                山本さんなら、とても笑えて可愛くて熱いアニメに仕上げてくださると信頼しているので、今から本当に楽しみです！<br/>
+                                ぼっち・ざ・ろっく！まだまだ楽しいが続くのね〜！<br/>
+                                Thank you
+                            </p>
+</div>
+</div>
+<div class="announce2ndmodal__comment__cont__box">
+<div class="announce2ndmodal__comment__cont__box__inner">
+<dl class="announce2ndmodal__comment__cont__box__head">
+<dd>山本ゆうすけ<span>Yusuke Yamamoto</span></dd>
+</dl>
+<p class="announce2ndmodal__comment__cont__box__txt">
+                                この場での発表は時期尚早かもしれませんが、一人でも多くのファンの皆様に直接届けたいという想いから、本日の発表を決意しました。<br/>
+                                再び結束バンドと共にエンジョイできることを嬉しく思っています！<br/>
+                                新ぼざろ制作チームとして、どうか温かい応援をよろしくお願いします。
+                            </p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<button class="c-modal__close js-modal_close"></button>
+</div>
+<footer class="l-footer">
+<aside class="l-fxdshare c-visible_nrw -active">
+<div class="l-fxdshare__inner">
+<h3 class="ttl c-barlow">SHARE</h3>
+<ul class="list">
+<li class="list_item -x">
+<a href="https://twitter.com/intent/tweet?text=%E3%80%8C%E5%8A%87%E5%A0%B4%E7%B7%8F%E9%9B%86%E7%B7%A8%E3%81%BC%E3%81%A3%E3%81%A1%E3%83%BB%E3%81%96%E3%83%BB%E3%82%8D%E3%81%A3%E3%81%8F%EF%BC%81%E3%80%8DBlu-ray%EF%BC%86DVD%202025.2.12%20RELEASE%20%23%E3%81%BC%E3%81%A3%E3%81%A1%E3%83%BB%E3%81%96%E3%83%BB%E3%82%8D%E3%81%A3%E3%81%8F" rel="noopener noreferrer" target="_blank"></a>
+</li>
+<li class="list_item -line">
+<a href="https://line.me/R/msg/text/?%E3%80%8C%E5%8A%87%E5%A0%B4%E7%B7%8F%E9%9B%86%E7%B7%A8%E3%81%BC%E3%81%A3%E3%81%A1%E3%83%BB%E3%81%96%E3%83%BB%E3%82%8D%E3%81%A3%E3%81%8F%EF%BC%81%E3%80%8DBlu-ray%EF%BC%86DVD%202025.2.12%20RELEASE%20%23%E3%81%BC%E3%81%A3%E3%81%A1%E3%83%BB%E3%81%96%E3%83%BB%E3%82%8D%E3%81%A3%E3%81%8F" rel="noopener noreferrer" target="_blank"></a>
+</li>
+<li class="list_item -facebook">
+<a href="https://www.facebook.com/share.php?u=https://bocchi.rocks/" rel="noopener noreferrer" target="_blank"></a>
+</li>
+</ul>
+</div>
+</aside>
+<div class="c-inner">
+<div class="l-footer__row">
+<h2 class="l-footer__logo">
+<picture>
+<source media="(max-width:834px)" srcset="omnibus/assets/img/common/footer/ttl_logo_nrw.svg"/>
+<img alt="" src="omnibus/assets/img/common/footer/ttl_logo.svg"/>
+</picture>
+</h2>
+<button class="l-footer__top js-pagetop"></button>
+<ul class="l-footer__banner">
+<li class="l-footer__banner__item c-hover_op">
+<a href="/bocchi/kessokuband/" rel="noopener noreferrer" target="_blank">
+<img alt="結束バンド" src="omnibus/assets/img/common/bnr/bnr_kessokuband.jpg"/>
+</a>
+</li>
+<li class="l-footer__banner__item c-hover_op">
+<a href="/bocchi/tv/" rel="noopener noreferrer" target="_blank">
+<img alt="TV ANIME" src="omnibus/assets/img/common/bnr/bnr_btranime.jpg"/>
+</a>
+</li>
+<li class="l-footer__banner__item c-hover_op">
+<a href="/bocchi/stage/" rel="noopener noreferrer" target="_blank">
+<img alt="LIVE STAGE" src="omnibus/assets/img/common/bnr/bnr_livestage.jpg"/>
+</a>
+</li>
+</ul>
+<div class="l-footer__info">
+<ul class="l-footer__link">
+<li class="item">
+<a class="c-hover_op" href="https://www.aniplex.co.jp/support/user.html" rel="noopener noreferrer" target="_blank">Support</a>
+</li>
+<li class="item">
+<a class="c-hover_op" href="https://www.aniplex.co.jp/help/site.html" rel="noopener noreferrer" target="_blank">About Site</a>
+</li>
+<li class="item">
+<a class="c-hover_op" href="https://www.aniplex.co.jp/help/privacy.html" rel="noopener noreferrer" target="_blank">Privacy Policy</a>
+</li>
+<li class="item">
+<a class="c-hover_op" href="https://www.aniplex.co.jp/" rel="noopener noreferrer" target="_blank">Aniplex</a>
+</li>
+</ul>
+<p class="l-footer__txt">このホームページに掲載されている一切の文書・図版・写真等を手段や形態を問わず複製、転載することを禁じます。　©はまじあき／芳文社・アニプレックス</p>
+</div>
+</div>
+</div>
+</footer>
+<section class="c-modal js-modal" data-modalid="movie">
+<div class="c-modal__inner">
+<div class="c-modal_movie__iframewrap">
+<div id="player"></div>
+</div>
+</div>
+<button class="c-modal__close js-modal_close"></button>
+</section>
+<section class="loader js-loader" data-position="1">
+<section class="loader__inner">
+<div class="loader__ph__main"><span></span></div>
+<div class="loader__ph__top"><span></span></div>
+<div class="loader__ph__shadow"></div>
+<div class="loader__gradient loader__obj"></div>
+<div class="loader__frame"></div>
+<div class="loader__curtain">
+<div class="loader__curtain__item -top"></div>
+<div class="loader__curtain__item -bottom"></div>
+</div>
+</section>
+</section>
+<script src="_ext/www.aniplex.co.jp/js/aniplex.imgdownload.min.js"></script>
+<script src="omnibus/assets/js/vendor.q_4026549e33.js"></script>
+<script src="omnibus/assets/js/common.q_4026549e33.js"></script>
+<script src="omnibus/assets/js/page/top.q_4026549e33.js"></script>
 </body>
 </html>
