@@ -11,7 +11,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 })(window,document,'script','dataLayer','GTM-TVJ8GHH');</script>
 <!-- End Google Tag Manager -->
 <meta charset="utf-8"/>
-<title>「劇場総集編ぼっち・ざ・ろっく！」公式サイト</title>
+<title>girl from nowhere</title>
 <meta content="width=device-width,initial-scale=1" name="viewport"/>
 <meta content="「劇場総集編ぼっち・ざ・ろっく！」Blu-ray＆DVD 2025.2.12 RELEASE" name="description"/>
 <meta content="Aniplex Inc." name="author"/>
@@ -39,8 +39,244 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 <link href="_ext/use.typekit.net/fsi1pcs.css" rel="stylesheet"/>
 <link href="omnibus/assets/css/common.q_cb01401296.css" rel="stylesheet"/>
 <link href="omnibus/assets/css/page/top.q_cb01401296.css" rel="stylesheet">
+<style>
+.custom-nav-buttons {
+    position: fixed;
+    right: 30px;
+    bottom: 30px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.custom-nav-btn {
+    position: relative;
+    width: 180px;
+    height: 60px;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    border: none;
+    border-radius: 15px;
+    text-decoration: none;
+    color: white;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 8px 25px rgba(255, 107, 157, 0.3);
+}
+
+.custom-nav-btn:hover {
+    transform: translateX(-15px) scale(1.1) rotateY(5deg);
+    box-shadow: 0 20px 40px rgba(255, 107, 157, 0.6), 0 0 30px rgba(255, 107, 157, 0.4);
+}
+
+.btn-content {
+    position: relative;
+    display: flex;
+    align-items: center;
+    padding: 15px 20px;
+    height: 100%;
+    z-index: 2;
+}
+
+.btn-icon {
+    font-size: 24px;
+    margin-right: 15px;
+    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.3));
+}
+
+.custom-nav-btn:hover .btn-icon {
+    transform: scale(1.3);
+    filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.8));
+    animation: spin 1s linear infinite;
+}
+
+.btn-text {
+    display: flex;
+    flex-direction: column;
+}
+
+.btn-title {
+    font-family: 'Barlow', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    margin-bottom: 2px;
+    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+    white-space: nowrap;
+}
+
+.btn-subtitle {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 12px;
+    opacity: 0.8;
+    transition: opacity 0.3s ease;
+}
+
+.custom-nav-btn:hover .btn-title {
+    color: #ffb3d1;
+    text-shadow: 0 0 20px rgba(255, 179, 209, 0.8), 0 0 30px rgba(255, 179, 209, 0.4);
+    transform: scale(1.05);
+}
+
+.custom-nav-btn:hover .btn-subtitle {
+    opacity: 1;
+}
+
+.btn-glow {
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), rgba(255, 179, 209, 0.3), transparent);
+    transition: left 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.custom-nav-btn:hover .btn-glow {
+    left: 100%;
+}
+
+.augment-btn {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+}
+
+.augment-btn:hover {
+    background: linear-gradient(135deg, #2a2a3e 0%, #26314e 50%, #1f4470 100%);
+    animation: shimmer 1.5s infinite;
+}
+
+.sublink-btn {
+    background: linear-gradient(135deg, #2e1a2e 0%, #3e1640 50%, #601060 100%);
+}
+
+.sublink-btn:hover {
+    background: linear-gradient(135deg, #3e2a3e 0%, #4e2650 50%, #702070 100%);
+    box-shadow: 0 20px 40px rgba(199, 125, 255, 0.6), 0 0 30px rgba(199, 125, 255, 0.4);
+    animation: shimmer-purple 1.5s infinite;
+}
+
+@media (max-width: 1200px) {
+    .custom-nav-buttons {
+        right: 20px;
+    }
+    
+    .custom-nav-btn {
+        width: 160px;
+        height: 50px;
+    }
+    
+    .btn-content {
+        padding: 12px 15px;
+    }
+    
+    .btn-icon {
+        font-size: 20px;
+        margin-right: 12px;
+    }
+    
+    .btn-title {
+        font-size: 14px;
+    }
+    
+    .btn-subtitle {
+        font-size: 11px;
+    }
+}
+
+@media (max-width: 834px) {
+    .custom-nav-buttons {
+        position: relative;
+        left: auto;
+        top: auto;
+        transform: none;
+        flex-direction: row;
+        justify-content: center;
+        margin: 20px auto;
+        padding: 0 20px;
+    }
+    
+    .custom-nav-btn {
+        width: 140px;
+        height: 45px;
+    }
+    
+    .custom-nav-btn:hover {
+        transform: translateY(-8px) scale(1.08) rotateY(3deg);
+    }
+}
+
+@keyframes pulse {
+    0% { box-shadow: 0 8px 25px rgba(255, 107, 157, 0.3); }
+    50% { box-shadow: 0 8px 25px rgba(255, 107, 157, 0.6); }
+    100% { box-shadow: 0 8px 25px rgba(255, 107, 157, 0.3); }
+}
+
+@keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+@keyframes shimmer-purple {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-5px); }
+}
+
+@keyframes spin {
+    0% { transform: scale(1.3) rotate(0deg); }
+    100% { transform: scale(1.3) rotate(360deg); }
+}
+
+.custom-nav-btn {
+    animation: pulse 3s infinite, float 4s ease-in-out infinite;
+    background-size: 200% 100%;
+}
+
+.augment-btn {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 25%, #0f3460 50%, #16213e 75%, #1a1a2e 100%);
+    background-size: 200% 100%;
+}
+
+.sublink-btn {
+    background: linear-gradient(135deg, #2e1a2e 0%, #3e1640 25%, #601060 50%, #3e1640 75%, #2e1a2e 100%);
+    background-size: 200% 100%;
+}
+
+.custom-nav-btn:hover {
+    animation: float 0.3s ease-out;
+}
+</style>
 </link></head>
 <body class="top" data-character="compilation6">
+
+<!-- Custom Navigation Buttons -->
+<div class="custom-nav-buttons">
+    <a href="https://augment.nanno.top" target="_blank" class="custom-nav-btn augment-btn">
+        <div class="btn-content">
+            <div class="btn-icon">🎸</div>
+            <div class="btn-text">
+                <span class="btn-title">AUGMENT</span>
+            </div>
+        </div>
+        <div class="btn-glow"></div>
+    </a>
+    
+    <a href="https://sublink.nanno.top" target="_blank" class="custom-nav-btn sublink-btn">
+        <div class="btn-content">
+            <div class="btn-icon">🎵</div>
+            <div class="btn-text">
+                <span class="btn-title">SUBLINK</span>
+            </div>
+        </div>
+        <div class="btn-glow"></div>
+    </a>
+</div>
 <!-- Google Tag Manager (noscript) -->
 <noscript><iframe height="0" src="https://www.googletagmanager.com/ns.html?id=GTM-TVJ8GHH" style="display:none;visibility:hidden" width="0"></iframe></noscript>
 <!-- End Google Tag Manager (noscript) -->
